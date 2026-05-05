@@ -3,619 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Operations Dashboard</title>
+    <title>Ayush Operations Dashboard</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
-            --text-color: #333;
             --primary: #4a90e2;
             --danger: #e74c3c;
-            --high: #ff4757;
-            --medium: #ffa502;
-            --low: #2ed573;
-            --dark: #2c3e50;
-            --done-color: #95a5a6;
+            --today-color: #f39c12;
+            --today-bg: #fffdf5;
+            --done-color: #b2bec3;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 900px; }
+        .card { background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
 
-        .container { width: 100%; max-width: 900px; margin-top: 20px; margin-bottom: 40px;}
-        
-        .card {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        /* --- AUTH SCREENS STYLES --- */
+        /* AUTH SCREEN */
         .auth-screen { max-width: 400px; margin: 100px auto; text-align: center; }
-        .auth-screen input { width: 100%; margin-bottom: 15px; box-sizing: border-box; }
-        .auth-screen p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        .toggle-link { color: var(--primary); cursor: pointer; text-decoration: underline; font-size: 14px; display: block; margin-top: 15px; }
-
-        /* --- DASHBOARD STYLES --- */
-        #dashboardScreen, #registerScreen { display: none; }
+        .auth-screen input { width: 100%; margin-bottom: 15px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
+        #dashboardScreen { display: none; }
 
         .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1, h2 { color: var(--dark); margin: 0; }
-        h1 { font-size: 24px; }
-
-        .logout-btn { background-color: #7f8c8d; padding: 8px 15px; font-size: 14px; border-radius: 6px; color: #fff; border: none; cursor: pointer; }
+        .logout-btn { background-color: #7f8c8d; padding: 8px 15px; border-radius: 6px; color: #fff; border: none; cursor: pointer; }
         
-        .stats-bar {
-            text-align: center; font-size: 18px; font-weight: bold;
-            color: var(--primary); margin-bottom: 20px;
-            background: #eef5ff; padding: 15px; border-radius: 8px;
-            display: flex; justify-content: space-around;
-        }
-        .stats-bar span { color: var(--dark); }
+        .stats-bar { text-align: center; font-size: 14px; font-weight: bold; background: #eef5ff; padding: 15px; border-radius: 8px; display: flex; justify-content: space-around; margin-bottom: 20px;}
 
-        .section-title {
-            font-size: 16px; color: #666; border-bottom: 2px solid #eee;
-            padding-bottom: 5px; margin-bottom: 15px; margin-top: 25px;
-        }
-
-        form, .grid-section {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-            background: #fdfdfd; padding: 20px; border: 1px solid #eee; border-radius: 8px;
-        }
-
+        form, .grid-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fdfdfd; padding: 20px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 20px;}
         .full-width { grid-column: span 2; }
+        input, select, button, textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
 
-        input, select, textarea, button { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; width: 100%; box-sizing: border-box; font-family: inherit; }
-        
-        button { background-color: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background-color: #357abd; }
-        
+        /* TASK ITEMS */
         .task-list { display: flex; flex-direction: column; gap: 15px; }
-        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; background: #fff; border-left: 5px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s; }
+        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; background: #fff; border-left: 10px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        .task-item.High { border-left-color: var(--high); }
-        .task-item.Medium { border-left-color: var(--medium); }
-        .task-item.Low { border-left-color: var(--low); }
-        
-        .task-item.done { opacity: 0.6; border-left-color: var(--done-color); background: #f9f9f9; }
-        .task-item.done h3 { text-decoration: line-through; color: #7f8c8d; }
+        /* Category Colors */
+        .cat-colony { border-left-color: #ff7675; } .cat-colony .badge-cat { background-color: #ff7675; color: #fff; }
+        .cat-swaraj { border-left-color: #74b9ff; } .cat-swaraj .badge-cat { background-color: #74b9ff; color: #fff; }
+        .cat-gurbaz { border-left-color: #55efc4; } .cat-gurbaz .badge-cat { background-color: #55efc4; color: #2d3436; }
+        .cat-9am { border-left-color: #a29bfe; } .cat-9am .badge-cat { background-color: #a29bfe; color: #fff; }
+        .cat-qubikals { border-left-color: #fdcb6e; } .cat-qubikals .badge-cat { background-color: #fdcb6e; color: #2d3436; }
+        .cat-personal { border-left-color: #fab1a0; } .cat-personal .badge-cat { background-color: #fab1a0; color: #fff; }
+        .cat-brickroute { border-left-color: #00b894; } .cat-brickroute .badge-cat { background-color: #00b894; color: #fff; }
+        .cat-rs { border-left-color: #81ecec; } .cat-rs .badge-cat { background-color: #81ecec; color: #2d3436; }
+
+        .task-item.done { opacity: 0.5; background: #eee; border-left-color: var(--done-color) !important; }
+        .task-item.done .badge-cat { background-color: var(--done-color) !important; }
+        .task-item.done h3 { text-decoration: line-through; }
 
         .task-info { display: flex; gap: 15px; align-items: center; width: 100%; }
-        .serial-no { font-size: 18px; font-weight: bold; color: #888; min-width: 30px; }
-        .task-details { flex-grow: 1; }
-        .task-details h3 { margin: 0 0 8px 0; font-size: 16px; line-height: 1.3; }
+        .serial-no { font-size: 18px; font-weight: bold; color: #888; min-width: 35px; }
+        .badges { display: flex; gap: 8px; font-size: 11px; flex-wrap: wrap; margin-top: 5px; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-weight: bold; border: 1px solid rgba(0,0,0,0.1); }
         
-        .badges { display: flex; gap: 10px; font-size: 12px; flex-wrap: wrap; }
-        .badge { padding: 4px 8px; border-radius: 4px; background: #eee; font-weight: bold; color: #555; }
-
-        .btn-group { display: flex; gap: 10px; flex-shrink: 0; }
-        .done-btn { background-color: var(--low); padding: 8px 12px; width: auto; }
-        .done-btn:hover { background-color: #27ae60; }
-        .undo-btn { background-color: var(--medium); padding: 8px 12px; color: #fff; width: auto; }
-        .delete-btn { background-color: var(--danger); padding: 8px 12px; width: auto; }
-        .delete-btn:hover { background-color: #c0392b; }
+        .btn-group { display: flex; gap: 8px; }
+        .done-btn { background-color: #2ed573; width: 80px; }
+        .today-btn { background-color: var(--today-color); width: 110px; }
+        .backlog-btn { background-color: #636e72; width: 90px; }
+        .undo-btn { background-color: #74b9ff; width: 80px; }
 
         .bulk-add-container { background: #f4f9f7; padding: 20px; border: 1px dashed #2ed573; border-radius: 8px; margin-top: 30px; }
-        .bulk-add-container textarea { height: 120px; resize: vertical; margin-bottom: 15px; }
+        .bulk-add-container textarea { height: 100px; margin-bottom: 10px; resize: vertical; font-family: inherit; }
 
-        /* --- MOBILE RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .card { padding: 15px; }
-            
-            /* Header aur Logout ko ek line mein fix rakhne ke liye */
-            .header-row { flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
-            .header-row h1 { font-size: 18px; }
-            .logout-btn { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
-            
-            .stats-bar { flex-direction: column; gap: 10px; font-size: 16px; }
             form, .grid-section { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-            
-            .task-item { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .task-info { align-items: flex-start; width: 100%; }
-            .btn-group { width: 100%; justify-content: space-between; }
-            .done-btn, .undo-btn, .delete-btn { flex-grow: 1; text-align: center; }
-            
-            .bulk-add-container { padding: 15px; }
+            .task-item { flex-direction: column; align-items: flex-start; }
+            .btn-group { width: 100%; margin-top: 10px; justify-content: space-between; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- LOGIN SCREEN -->
-        <div class="card auth-screen" id="loginScreen">
-            <h2>🔐 Login</h2>
-            <p>Enter your username and password.</p>
-            <input type="text" id="loginUsername" placeholder="Username" required>
-            <input type="password" id="loginPassword" placeholder="Password" required>
-            <button onclick="handleLogin()">Login</button>
-            <span class="toggle-link" onclick="showScreen('registerScreen')">New user? Create an Account here</span>
-        </div>
-
-        <!-- REGISTER SCREEN -->
-        <div class="card auth-screen" id="registerScreen">
-            <h2>👤 Create Account</h2>
-            <p>Set up a new username and password.</p>
-            <input type="text" id="regUsername" placeholder="Choose a Username" required>
-            <input type="password" id="regPassword" placeholder="Create Password" required>
-            <input type="password" id="regConfirm" placeholder="Confirm Password" required>
-            <button onclick="handleRegister()" style="background-color: var(--low);">Sign Up</button>
-            <span class="toggle-link" onclick="showScreen('loginScreen')">Already have an account? Login here</span>
-        </div>
-
-        <!-- MAIN DASHBOARD -->
-        <div class="card" id="dashboardScreen">
-            <div class="header-row">
-                <h1 id="userGreeting">🚀 Dashboard</h1>
-                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
-            </div>
-            
-            <div class="stats-bar" id="statsBar">
-                <div>Pending Tasks: <span id="pendingCount">0</span></div>
-                <div>Estimated Time: <span id="estimatedTime">0</span> Hrs</div>
-            </div>
-
-            <div class="section-title">➕ Add New Task</div>
-            <form id="taskForm" class="grid-section">
-                <input type="text" id="taskName" class="full-width" placeholder="What needs to be done?" required>
-                
-                <select id="taskCategory" onchange="handleCategorySelect(this)" required>
-                    <!-- Populated dynamically -->
-                </select>
-
-                <select id="taskPriority" required>
-                    <option value="High">🔴 High Priority</option>
-                    <option value="Medium">🟡 Medium Priority</option>
-                    <option value="Low">🟢 Low Priority</option>
-                </select>
-
-                <select id="taskTime" class="full-width" onchange="handleTimeSelect(this)" required>
-                    <option value="15 Min">⏱️ 15 Min</option>
-                    <option value="30 Min">⏱️ 30 Min</option>
-                    <option value="1 Hour">⏱️ 1 Hour</option>
-                    <option value="2 Hours">⏱️ 2 Hours</option>
-                    <option value="4 Hours">⏱️ 4 Hours</option>
-                    <option value="8 Hours">⏱️ 8 Hours</option>
-                    <option value="12 Hours">⏱️ 12 Hours</option>
-                    <option value="24 Hours">⏱️ 24 Hours</option>
-                    <option value="ADD_NEW">➕ Enter Custom Time...</option>
-                </select>
-
-                <button type="submit" class="full-width">+ Add Task</button>
-            </form>
-
-            <div class="section-title">🔍 Filter Your Work</div>
-            <div class="grid-section" style="background: #fff8f0; border-color: #ffe0b2; margin-bottom: 20px;">
-                <select id="filterCategory" onchange="applyFilters()">
-                    <option value="All">📁 All Categories</option>
-                </select>
-                
-                <select id="filterStatus" onchange="applyFilters()">
-                    <option value="Pending">⏳ Pending Tasks</option>
-                    <option value="Done">✔ Done Tasks</option>
-                    <option value="All">📂 View All Status</option>
-                </select>
-
-                <select id="filterPriority" onchange="applyFilters()">
-                    <option value="All">🚦 All Priorities</option>
-                    <option value="High">🔴 High Only</option>
-                    <option value="Medium">🟡 Medium Only</option>
-                    <option value="Low">🟢 Low Only</option>
-                </select>
-
-                <select id="filterTime" onchange="applyFilters()">
-                    <option value="All">⏱️ All Time Durations</option>
-                    <option value="<30">Less than 30 Min</option>
-                    <option value="30-60">30 Min to 1 Hour</option>
-                    <option value="60-120">1 to 2 Hours</option>
-                    <option value=">120">More than 2 Hours</option>
-                </select>
-            </div>
-
-            <div class="section-title">📋 Task List (A to Z)</div>
-            <div class="task-list" id="taskList"></div>
-
-            <!-- BULK ADD SECTION -->
-            <div class="section-title" style="margin-top: 40px;">📝 Bulk Add Tasks</div>
-            <div class="bulk-add-container">
-                <p style="font-size: 13px; color: #555; margin-top: 0;">Add multiple tasks at once. Use the exact format below, one task per line:<br>
-                <b>Category | Time | Priority | Task Name</b><br>
-                <i>Example: Swaraj | 1 Hour | High | Indiamart package update</i></p>
-                
-                <textarea id="bulkTasks" placeholder="Swaraj | 15 Min | High | Call new leads&#10;Qubikals | 2 Hours | Medium | Virtual office invoice check"></textarea>
-                <button onclick="handleBulkAdd()" style="background-color: var(--low); width: 100%;">+ Bulk Upload Tasks</button>
-            </div>
-        </div>
+<div class="container">
+    <div class="card auth-screen" id="loginScreen">
+        <h2>🔐 Master Dashboard</h2>
+        <input type="text" id="loginUsername" placeholder="Username">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="handleLogin()">Login</button>
     </div>
 
-    <script>
-        let currentUser = null;
-        const ayushDefaultCategories = ["Swaraj", "RS Distribution", "Brickroute", "Qubikals", "9AM Trader", "Gurbaz", "Maschio", "Colony Bina", "Personal"];
-        const generalDefaultCategories = ["General", "Work", "Personal"];
+    <div class="card" id="dashboardScreen">
+        <div class="header-row">
+            <h1 id="userGreeting">🚀 Dashboard</h1>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+        
+        <div class="stats-bar">
+            <div>🌞 Today: <span id="todayCount">0</span> (<span id="todayTime">0</span> Hrs)</div>
+            <div>⏳ Pending: <span id="pendingCount">0</span> (<span id="estimatedTime">0</span> Hrs)</div>
+        </div>
 
-        // FULL DATA EXTRACTED DIRECTLY FROM YOUR UPLOADED DOCX FILES
-        const fullAyushDocsData = [
-            // 9AM Trader & Course Generation
-            { name: "Course Record Before 20-25th April", category: "9AM Trader", time: "4 Hours", priority: "High", status: "pending" },
-            { name: "50 Enrollment Target by 30th April", category: "9AM Trader", time: "8 Hours", priority: "High", status: "pending" },
-            { name: "Pencilbreaker Website & Discord Community", category: "9AM Trader", time: "8 Hours", priority: "High", status: "pending" },
-            { name: "Graphy par sab kuch for course selling", category: "9AM Trader", time: "4 Hours", priority: "High", status: "pending" },
-            { name: "Record Youtube videos (Intraday & Swing)", category: "9AM Trader", time: "2 Hours", priority: "High", status: "pending" },
-            { name: "Create Insta Post For Swing Trade & Intraday", category: "9AM Trader", time: "1 Hour", priority: "Medium", status: "pending" },
-            
-            // Brickroute Bailing
-            { name: "46 ka oil lagega maschio chain mai", category: "Brickroute", time: "15 Min", priority: "High", status: "pending" },
-            { name: "5 point for greasing pto shaft for baler Maschio", category: "Brickroute", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Numetic gun order karna for tightening bolt", category: "Brickroute", time: "15 Min", priority: "Medium", status: "pending" },
-            { name: "Order safety bolt 100 pieces", category: "Brickroute", time: "15 Min", priority: "High", status: "pending" },
-            { name: "Checklist: toolkit, twin check, oil refill in balers", category: "Brickroute", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Transport arranged for wheat bhusa", category: "Brickroute", time: "2 Hours", priority: "High", status: "pending" },
+        <form id="taskForm">
+            <input type="text" id="taskName" class="full-width" placeholder="Task Name" required>
+            <select id="taskCategory" onchange="handleCategorySelect(this)" required></select>
+            <select id="taskPriority" required>
+                <option value="High">🔴 High</option>
+                <option value="Medium">🟡 Medium</option>
+                <option value="Low">🟢 Low</option>
+            </select>
+            <select id="taskTime" required onchange="handleTimeSelect(this)">
+                <option value="15 Min">⏱️ 15 Min</option>
+                <option value="30 Min">⏱️ 30 Min</option>
+                <option value="1 Hour">⏱️ 1 Hour</option>
+                <option value="2 Hours">⏱️ 2 Hours</option>
+                <option value="ADD_NEW">➕ Custom...</option>
+            </select>
+            <select id="taskSlot" class="full-width"></select>
+            <button type="submit" class="full-width">+ Add Task</button>
+        </form>
 
-            // RS Distribution
-            { name: "Indiamart par reaper ki bhi listing gurbaz", category: "RS Distribution", time: "1 Hour", priority: "Medium", status: "pending" },
-            { name: "RS Printing (Receipt, Quotation, Visiting Cards, Brochure)", category: "RS Distribution", time: "2 Hours", priority: "High", status: "pending" },
-            { name: "Salesman hire and telecaller", category: "RS Distribution", time: "4 Hours", priority: "High", status: "pending" },
-            { name: "HSN Code Update RS Distribution for twine", category: "RS Distribution", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Showroom ke bahar spare parts ka led board", category: "RS Distribution", time: "1 Hour", priority: "Medium", status: "pending" },
-            { name: "Camera in godown", category: "RS Distribution", time: "2 Hours", priority: "High", status: "pending" },
+        <div class="grid-section" style="background: #fff8f0; border-color: #ffe0b2;">
+            <input type="text" id="searchFilter" class="full-width" placeholder="🔍 Search tasks..." onkeyup="applyFilters()">
+            <select id="filterCategory" onchange="applyFilters()"></select>
+            <select id="filterStatus" onchange="applyFilters()">
+                <option value="All">📂 View All</option>
+                <option value="Today">🌞 Today's Focus</option>
+                <option value="Pending">⏳ Pending List</option>
+                <option value="Backlog">📁 Backlog</option>
+                <option value="Done">✔ Done Tasks</option>
+            </select>
+        </div>
 
-            // Qubikals MP & RN
-            { name: "Hire Extra Office Boy", category: "Qubikals", time: "2 Hours", priority: "High", status: "pending" },
-            { name: "Virtual office ke rate list prepare", category: "Qubikals", time: "1 Hour", priority: "High", status: "pending" },
-            { name: "Rohit nagar Khushoo and fragnance", category: "Qubikals", time: "15 Min", priority: "Low", status: "pending" },
-            { name: "Netbanking Active rohit Nagar", category: "Qubikals", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Invest & Start Podcast Service In Future", category: "Qubikals", time: "8 Hours", priority: "Low", status: "pending" },
-            { name: "Create Ad Video of Coworking & Virtual Office", category: "Qubikals", time: "2 Hours", priority: "Medium", status: "pending" },
-            { name: "TDS File & GST Qubikals", category: "Qubikals", time: "2 Hours", priority: "High", status: "pending" },
-            
-            // Swaraj
-            { name: "Indiamart package update", category: "Swaraj", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Make a list of spare parts jo bill hue", category: "Swaraj", time: "1 Hour", priority: "High", status: "pending" },
-            { name: "Sabhi customer ko call karke puchna ki tyre toh nahi chahiye", category: "Swaraj", time: "2 Hours", priority: "Medium", status: "pending" },
-            { name: "Warranty claim ke invoice banenge 4 lakh wale", category: "Swaraj", time: "1 Hour", priority: "High", status: "pending" },
-            { name: "Rotavator sell - call all nearby dealers", category: "Swaraj", time: "4 Hours", priority: "High", status: "pending" },
+        <div class="task-list" id="taskList"></div>
 
-            // Gurbaz & Maschio
-            { name: "Expo Payment Reimburse", category: "Gurbaz", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Baler enquiry list from gurbaz event", category: "Gurbaz", time: "2 Hours", priority: "Medium", status: "pending" },
-            { name: "Sabhi Baler Ke sales amount recieved sheet complete", category: "Gurbaz", time: "1 Hour", priority: "High", status: "pending" },
-            { name: "Payment Lalit kaka auto parts", category: "Maschio", time: "15 Min", priority: "High", status: "pending" },
-            { name: "Spare parts maschio ke liye rack banwana", category: "Maschio", time: "2 Hours", priority: "Medium", status: "pending" },
+        <div class="bulk-add-container">
+            <h3 style="margin-top:0; font-size:16px; color:#2c3e50;">📝 Bulk Add (Format: Category | Time | Priority | Name)</h3>
+            <textarea id="bulkTasks" placeholder="Swaraj | 1 Hour | High | Call leads"></textarea>
+            <button onclick="handleBulkAdd()" style="background-color: #27ae60;">+ Bulk Upload Tasks</button>
+        </div>
+    </div>
+</div>
 
-            // Colony Bina
-            { name: "Board lagwana plot sell ka", category: "Colony Bina", time: "2 Hours", priority: "High", status: "pending" },
-            { name: "Start Running Ad on instagram and FB", category: "Colony Bina", time: "1 Hour", priority: "Medium", status: "pending" },
-            { name: "Colony Registry Documents (Naksha, Sampada)", category: "Colony Bina", time: "1 Hour", priority: "High", status: "pending" },
+<script>
+    let currentUser = null;
+    const defaults = ["Swaraj", "RS Distribution", "Brickroute", "Qubikals", "9AM Trader", "Gurbaz", "Maschio", "Colony Bina", "Personal"];
 
-            // Personal & Marriage
-            { name: "Own ITR download and save", category: "Personal", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Mummy Thyroid Test & Sonography", category: "Personal", time: "2 Hours", priority: "High", status: "pending" },
-            { name: "Tyre reliance motor se uthana h", category: "Personal", time: "1 Hour", priority: "Medium", status: "pending" },
-            { name: "Bill pay - amazon, cc, virasha, aunty rent, rupal", category: "Personal", time: "30 Min", priority: "High", status: "pending" },
-            { name: "Chandi ki thal lana hai laxmi ji ki pooja ke liye", category: "Personal", time: "1 Hour", priority: "Low", status: "pending" },
-            { name: "Rupal entry ke liye foot wale and hanth wale", category: "Personal", time: "1 Hour", priority: "Medium", status: "pending" },
-            { name: "Carehealth mail for documents back original", category: "Personal", time: "30 Min", priority: "High", status: "pending" }
-        ];
-
-        // --- AUTH LOGIC ---
-        function initUsersDB() {
-            let db = JSON.parse(localStorage.getItem('app_users'));
-            if (!db) {
-                db = { 'ayushrai': 'Ayush123' }; 
-                localStorage.setItem('app_users', JSON.stringify(db));
-            }
+    function getSlotOptions(selId) {
+        const slots = [{id:99, text:'🕒 Flexible'}];
+        
+        // Loop to generate 08:00 AM to 08:00 PM hourly slots
+        for (let i = 8; i <= 20; i++) {
+            let hour = i > 12 ? i - 12 : i;
+            let ampm = i >= 12 ? 'PM' : 'AM';
+            let timeStr = (hour < 10 ? '0' + hour : hour) + ':00 ' + ampm;
+            slots.push({id: i, text: '▶ ' + timeStr});
         }
-        initUsersDB();
+        
+        return slots.map(s => `<option value="${s.id}" ${selId==s.id?'selected':''}>${s.text}</option>`).join('');
+    }
 
-        function showScreen(screenId) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('registerScreen').style.display = 'none';
-            document.getElementById('dashboardScreen').style.display = 'none';
-            document.getElementById(screenId).style.display = 'block';
-        }
-
-        function handleRegister() {
-            const user = document.getElementById('regUsername').value.trim();
-            const pass = document.getElementById('regPassword').value;
-            const conf = document.getElementById('regConfirm').value;
-            if (!user || !pass) { alert("Please fill all fields!"); return; }
-            if (pass !== conf) { alert("Passwords do not match!"); return; }
-            let db = JSON.parse(localStorage.getItem('app_users'));
-            if (db[user]) { alert("Username already exists!"); return; }
-            db[user] = pass;
-            localStorage.setItem('app_users', JSON.stringify(db));
-            alert("Account created successfully!");
-            showScreen('loginScreen');
-        }
-
-        function handleLogin() {
-            const user = document.getElementById('loginUsername').value.trim();
-            const pass = document.getElementById('loginPassword').value;
-            if (!user || !pass) { alert("Enter both username and password!"); return; }
-            let db = JSON.parse(localStorage.getItem('app_users'));
-            if (!db[user] || db[user] !== pass) { alert("Incorrect credentials!"); return; }
-            
-            currentUser = user;
-            document.getElementById('userGreeting').innerText = `🚀 ${currentUser}'s Dashboard`;
+    function handleLogin() {
+        const u = document.getElementById('loginUsername').value;
+        const p = document.getElementById('loginPassword').value;
+        if (u === 'ayushrai' && p === 'Ayush123') {
+            currentUser = u;
+            document.getElementById('loginScreen').style.display='none';
+            document.getElementById('dashboardScreen').style.display='block';
             initializeApp();
-            showScreen('dashboardScreen');
-        }
+        } else { alert("Login Failed"); }
+    }
 
-        function handleLogout() {
-            currentUser = null;
-            document.getElementById('loginUsername').value = '';
-            document.getElementById('loginPassword').value = '';
-            showScreen('loginScreen');
-        }
+    function initializeApp() {
+        let cats = JSON.parse(localStorage.getItem(`cats_${currentUser}`)) || defaults;
+        localStorage.setItem(`cats_${currentUser}`, JSON.stringify(cats));
+        const tCat = document.getElementById('taskCategory');
+        const fCat = document.getElementById('filterCategory');
+        tCat.innerHTML = ''; fCat.innerHTML = '<option value="All">All Categories</option>';
+        cats.forEach(c => { tCat.appendChild(new Option(c, c)); fCat.appendChild(new Option(c, c)); });
+        tCat.appendChild(new Option("+ New Category", "ADD_NEW"));
+        document.getElementById('taskSlot').innerHTML = getSlotOptions(99);
+        loadTasks();
+    }
 
-        // --- APP LOGIC ---
-        function initializeApp() {
-            loadCategories();
-            document.getElementById('filterStatus').value = 'Pending';
-            loadTasks();
-        }
-
-        function loadCategories() {
-            let userCategories = JSON.parse(localStorage.getItem(`categories_${currentUser}`));
-            if (!userCategories || userCategories.length === 0) {
-                userCategories = (currentUser === 'ayushrai') ? ayushDefaultCategories : generalDefaultCategories;
-                localStorage.setItem(`categories_${currentUser}`, JSON.stringify(userCategories));
-            }
-            renderCategoryDropdowns(userCategories);
-        }
-
-        function renderCategoryDropdowns(categories) {
-            const taskCat = document.getElementById('taskCategory');
-            const filterCat = document.getElementById('filterCategory');
-            taskCat.innerHTML = '';
-            filterCat.innerHTML = '<option value="All">📁 All Categories</option>';
-            categories.forEach(cat => {
-                taskCat.appendChild(new Option(cat, cat));
-                filterCat.appendChild(new Option(cat, cat));
-            });
-            taskCat.appendChild(new Option("➕ Add New Category...", "ADD_NEW"));
-        }
-
-        function handleCategorySelect(selectElem) {
-            if (selectElem.value === 'ADD_NEW') {
-                const newCat = prompt("Enter the name of your new category:");
-                if (newCat && newCat.trim() !== '') {
-                    let userCategories = JSON.parse(localStorage.getItem(`categories_${currentUser}`)) || [];
-                    if (!userCategories.includes(newCat.trim())) {
-                        userCategories.push(newCat.trim());
-                        localStorage.setItem(`categories_${currentUser}`, JSON.stringify(userCategories));
-                        renderCategoryDropdowns(userCategories);
-                        selectElem.value = newCat.trim();
-                    } else {
-                        alert("Category already exists!");
-                        selectElem.selectedIndex = 0;
-                    }
-                } else {
-                    selectElem.selectedIndex = 0;
-                }
+    function handleCategorySelect(s) {
+        if(s.value === 'ADD_NEW') {
+            const n = prompt("Category Name:");
+            if(n) {
+                let c = JSON.parse(localStorage.getItem(`cats_${currentUser}`));
+                c.push(n); localStorage.setItem(`cats_${currentUser}`, JSON.stringify(c));
+                initializeApp(); s.value = n;
             }
         }
+    }
 
-        function handleTimeSelect(selectElem) {
-            if (selectElem.value === 'ADD_NEW') {
-                const customTime = prompt("Enter custom time in hours (e.g., 16.5 or 13):");
-                if (customTime && !isNaN(customTime) && customTime.trim() !== '') {
-                    const timeLabel = `${customTime} Hrs`;
-                    const opt = new Option(`⏱️ ${timeLabel}`, timeLabel);
-                    selectElem.add(opt, selectElem.options.length - 1); 
-                    selectElem.value = timeLabel;
-                } else {
-                    alert("Invalid time entered. Please enter numbers only (e.g., 1.5).");
-                    selectElem.selectedIndex = 0;
-                }
-            }
+    function handleTimeSelect(s) {
+        if(s.value === 'ADD_NEW') {
+            const t = prompt("Hours (e.g. 1.5):");
+            if(t) { const o = new Option(`${t} Hrs`, `${t} Hrs`); s.add(o, s.options.length-1); s.value=`${t} Hrs`; }
         }
+    }
 
-        function parseTimeToHours(timeStr) {
-            if (!timeStr) return 0;
-            let lower = timeStr.toLowerCase();
-            let match = timeStr.match(/[\d.]+/);
-            if (!match) return 0;
-            let val = parseFloat(match[0]);
-            
-            if (lower.includes('min')) return val / 60;
-            return val;
-        }
+    function loadTasks() {
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+        saveTasks(t);
+    }
 
-        function updateStats(allTasks) {
-            let pendingTasks = allTasks.filter(t => t.status !== 'done');
-            let totalHours = pendingTasks.reduce((sum, task) => sum + parseTimeToHours(task.time), 0);
-            document.getElementById('pendingCount').innerText = pendingTasks.length;
-            document.getElementById('estimatedTime').innerText = Math.round(totalHours * 100) / 100;
-        }
+    function applyFilters() {
+        let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+        const search = document.getElementById('searchFilter').value.toLowerCase();
+        const cat = document.getElementById('filterCategory').value;
+        const stat = document.getElementById('filterStatus').value;
+        
+        let p = tasks.filter(x => x.status === 'pending' && !x.isBacklog);
+        let tod = p.filter(x => x.isToday);
+        const parse = (v) => { if(!v) return 0; let n = parseFloat(v.match(/[\d.]+/)); return v.toLowerCase().includes('min')?n/60:n; };
+        document.getElementById('pendingCount').innerText = p.length;
+        document.getElementById('estimatedTime').innerText = p.reduce((s,x)=>s+parse(x.time),0).toFixed(1);
+        document.getElementById('todayCount').innerText = tod.length;
+        document.getElementById('todayTime').innerText = tod.reduce((s,x)=>s+parse(x.time),0).toFixed(1);
 
-        document.getElementById('taskForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const task = {
-                id: Date.now(),
-                name: document.getElementById('taskName').value,
-                category: document.getElementById('taskCategory').value,
-                time: document.getElementById('taskTime').value,
-                priority: document.getElementById('taskPriority').value,
-                status: 'pending' 
-            };
-            let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
-            tasks.push(task);
-            saveAndSortTasks(tasks);
-            
-            document.getElementById('taskForm').reset();
-            document.getElementById('taskCategory').selectedIndex = 0;
-            document.getElementById('taskTime').selectedIndex = 0;
-            document.getElementById('filterStatus').value = 'Pending';
+        let filtered = tasks.filter(t => {
+            const mS = t.name.toLowerCase().includes(search);
+            const mC = cat === 'All' || t.category === cat;
+            let mSt = true;
+            if(stat === 'Today') mSt = t.status === 'pending' && t.isToday && !t.isBacklog;
+            else if(stat === 'Pending') mSt = t.status === 'pending' && !t.isBacklog;
+            else if(stat === 'Backlog') mSt = t.isBacklog;
+            else if(stat === 'Done') mSt = t.status === 'done';
+            return mS && mC && mSt;
         });
+        renderTasks(filtered);
+    }
 
-        // --- BULK ADD LOGIC ---
-        function handleBulkAdd() {
-            const bulkText = document.getElementById('bulkTasks').value;
-            const lines = bulkText.split('\n');
-            let addedCount = 0;
-            let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+    function saveTasks(t) { localStorage.setItem(`tasks_${currentUser}`, JSON.stringify(t)); applyFilters(); }
 
-            lines.forEach(line => {
-                if(!line.trim()) return;
-                const parts = line.split('|').map(p => p.trim());
-                if(parts.length >= 4) {
-                    tasks.push({
-                        id: Date.now() + Math.random(),
-                        category: parts[0],
-                        time: parts[1],
-                        priority: parts[2],
-                        name: parts[3],
-                        status: 'pending'
-                    });
-                    
-                    let userCategories = JSON.parse(localStorage.getItem(`categories_${currentUser}`)) || [];
-                    if (!userCategories.includes(parts[0])) {
-                        userCategories.push(parts[0]);
-                        localStorage.setItem(`categories_${currentUser}`, JSON.stringify(userCategories));
-                        renderCategoryDropdowns(userCategories);
-                    }
-                    addedCount++;
-                }
-            });
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const t = { id: Date.now(), name: document.getElementById('taskName').value, category: document.getElementById('taskCategory').value, time: document.getElementById('taskTime').value, priority: document.getElementById('taskPriority').value, status:'pending', isToday:true, isBacklog:false, slotId:parseInt(document.getElementById('taskSlot').value) };
+        let all = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+        all.push(t); saveTasks(all); e.target.reset();
+    });
 
-            if(addedCount > 0) {
-                saveAndSortTasks(tasks);
-                document.getElementById('bulkTasks').value = '';
-                alert(`Successfully added ${addedCount} tasks in bulk!`);
-            } else {
-                alert("Please ensure you use the exact format: Category | Time | Priority | Task Name");
+    function handleBulkAdd() {
+        const text = document.getElementById('bulkTasks').value;
+        if(!text) return;
+        let all = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
+        text.split('\n').forEach(line => {
+            const p = line.split('|').map(s => s.trim());
+            if(p.length >= 4) {
+                all.push({ id: Date.now()+Math.random(), category: p[0], time: p[1], priority: p[2], name: p[3], status:'pending', isToday:false, isBacklog:false, slotId:99 });
             }
-        }
+        });
+        saveTasks(all); document.getElementById('bulkTasks').value = '';
+    }
 
-        function loadTasks() {
-            let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`));
-            if (currentUser === 'ayushrai' && (!tasks || tasks.length < 10)) {
-                tasks = fullAyushDocsData.map((t, index) => ({
-                    id: Date.now() + index,
-                    ...t
-                }));
-            }
-            if(!tasks) tasks = [];
+    function updateSlot(id, s) {
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`));
+        let x = t.find(i => i.id === id); x.slotId = parseInt(s.value); saveTasks(t);
+    }
+
+    function toggleToday(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isToday=!x.isToday; x.isBacklog=false; saveTasks(t); }
+    function moveBacklog(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=true; x.isToday=false; saveTasks(t); }
+    function toggleDone(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.status=x.status==='done'?'pending':'done'; x.isToday=false; x.isBacklog=false; saveTasks(t); }
+
+    function renderTasks(tasks) {
+        const list = document.getElementById('taskList');
+        list.innerHTML = tasks.length ? '' : '<p style="text-align:center; padding:20px; color:#999;">No tasks found.</p>';
+        tasks.sort((a,b) => (a.slotId || 99) - (b.slotId || 99)).forEach((t, i) => {
+            let c = 'cat-generic'; const lc = t.category.toLowerCase();
+            if(lc.includes('colony')) c='cat-colony'; 
+            else if(lc.includes('swaraj')) c='cat-swaraj'; 
+            else if(lc.includes('gurbaz')) c='cat-gurbaz'; 
+            else if(lc.includes('9am')) c='cat-9am'; 
+            else if(lc.includes('qubikals')) c='cat-qubikals'; 
+            else if(lc.includes('personal')) c='cat-personal'; 
+            else if(lc.includes('brickroute')) c='cat-brickroute'; 
+            else if(lc.includes('rs')) c='cat-rs';
             
-            tasks = tasks.map(t => {
-                if(!t.status) t.status = 'pending';
-                return t;
-            });
-
-            saveAndSortTasks(tasks);
-        }
-
-        function applyFilters() {
-            let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
-            const catFilter = document.getElementById('filterCategory').value;
-            const priFilter = document.getElementById('filterPriority').value;
-            const statFilter = document.getElementById('filterStatus').value; 
-            const timeFilter = document.getElementById('filterTime').value;
-
-            updateStats(tasks); 
-
-            let filteredTasks = tasks.filter(task => {
-                const matchCat = (catFilter === 'All' || task.category === catFilter);
-                const matchPri = (priFilter === 'All' || task.priority === priFilter);
-                const matchStat = (statFilter === 'All' || 
-                                 (statFilter === 'Pending' && task.status !== 'done') ||
-                                 (statFilter === 'Done' && task.status === 'done'));
-                
-                let matchTime = true;
-                if (timeFilter !== 'All') {
-                    let hrs = parseTimeToHours(task.time);
-                    if (timeFilter === '<30') matchTime = hrs < 0.5;
-                    else if (timeFilter === '30-60') matchTime = (hrs >= 0.5 && hrs <= 1);
-                    else if (timeFilter === '60-120') matchTime = (hrs > 1 && hrs <= 2);
-                    else if (timeFilter === '>120') matchTime = hrs > 2;
-                }
-
-                return matchCat && matchPri && matchStat && matchTime;
-            });
-            renderTasks(filteredTasks);
-        }
-
-        function saveAndSortTasks(tasks) {
-            tasks.sort((a, b) => {
-                if (a.status !== b.status) return a.status === 'pending' ? -1 : 1;
-                const pVals = { 'High': 1, 'Medium': 2, 'Low': 3 };
-                return pVals[a.priority] - pVals[b.priority];
-            });
-            localStorage.setItem(`tasks_${currentUser}`, JSON.stringify(tasks));
-            applyFilters();
-        }
-
-        function toggleTaskStatus(id) {
-            let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
-            let task = tasks.find(t => t.id === id);
-            if(task) {
-                task.status = (task.status === 'done') ? 'pending' : 'done';
-                saveAndSortTasks(tasks);
-            }
-        }
-
-        function deleteTask(id) {
-            if(confirm("Are you sure you want to delete this task completely?")) {
-                let tasks = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
-                tasks = tasks.filter(task => task.id !== id);
-                saveAndSortTasks(tasks);
-            }
-        }
-
-        function renderTasks(tasksToRender) {
-            const taskList = document.getElementById('taskList');
-            taskList.innerHTML = '';
-            
-            if(tasksToRender.length === 0) {
-                taskList.innerHTML = '<p style="text-align:center; color:#777; padding: 20px;">No tasks found matching these filters.</p>';
-                return;
-            }
-
-            tasksToRender.forEach((task, index) => {
-                const div = document.createElement('div');
-                div.className = `task-item ${task.priority} ${task.status === 'done' ? 'done' : ''}`;
-                
-                let actionButtons = '';
-                if (task.status === 'done') {
-                    actionButtons = `
-                        <button class="undo-btn" onclick="toggleTaskStatus(${task.id})">↩️ Undo</button>
-                        <button class="delete-btn" onclick="deleteTask(${task.id})">🗑️ Delete</button>
-                    `;
-                } else {
-                    actionButtons = `<button class="done-btn" onclick="toggleTaskStatus(${task.id})">✔ Done</button>`;
-                }
-
-                div.innerHTML = `
-                    <div class="task-info">
-                        <div class="serial-no">#${index + 1}</div>
-                        <div class="task-details">
-                            <h3>${task.name}</h3>
-                            <div class="badges">
-                                <span class="badge">📁 ${task.category}</span>
-                                <span class="badge">⏱️ ${task.time}</span>
-                                <span class="badge">${task.priority} Priority</span>
-                            </div>
+            const div = document.createElement('div');
+            div.className = `task-item ${c} ${t.status==='done'?'done':''}`;
+            div.innerHTML = `
+                <div class="task-info">
+                    <div class="serial-no">#${i+1}</div>
+                    <div class="task-details">
+                        <h3 style="margin:0;">${t.name}</h3>
+                        <div class="badges">
+                            <span class="badge badge-cat">📁 ${t.category}</span>
+                            <span class="badge" style="background:#eee">⏱️ ${t.time}</span>
+                            <span class="badge" style="background:#fff3f3">${t.priority}</span>
+                            ${t.status!=='done' && t.isToday ? `<select class="badge" style="background:#fff9db; border:1px solid #f1c40f" onchange="updateSlot(${t.id}, this)">${getSlotOptions(t.slotId)}</select>` : ''}
                         </div>
                     </div>
-                    <div class="btn-group">
-                        ${actionButtons}
-                    </div>
-                `;
-                taskList.appendChild(div);
-            });
-        }
-    </script>
+                </div>
+                <div class="btn-group">
+                    ${t.status!=='done' ? `<button class="today-btn" onclick="toggleToday(${t.id})">${t.isToday?'Remove Focus':'⭐ Today'}</button><button class="backlog-btn" onclick="moveBacklog(${t.id})">📁 Backlog</button><button class="done-btn" onclick="toggleDone(${t.id})">✔ Done</button>` : `<button class="undo-btn" onclick="toggleDone(${t.id})">Undo</button>`}
+                </div>`;
+            list.appendChild(div);
+        });
+    }
+    function handleLogout() { currentUser=null; document.getElementById('loginScreen').style.display='block'; document.getElementById('dashboardScreen').style.display='none'; }
+</script>
 </body>
 </html>
