@@ -41,9 +41,9 @@
         .task-list { display: flex; flex-direction: column; gap: 15px; }
         .task-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; background: #fff; border-left: 10px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* Today Specific Design - Simple & Clean Box */
+        /* Today Specific Design - Simple Yellow Box */
         .today-box { background-color: #fffdf0 !important; border: 1px solid #f1c40f !important; border-left: 10px solid #f39c12 !important; padding: 20px !important; }
-        
+
         /* Category Specific Visuals */
         .cat-colony { border-left-color: #ff7675 !important; } .cat-colony .badge-cat { background-color: #ff7675 !important; color: #fff; }
         .cat-swaraj { border-left-color: #74b9ff !important; } .cat-swaraj .badge-cat { background-color: #74b9ff !important; color: #fff; }
@@ -65,7 +65,7 @@
         .done-btn { background-color: #2ed573; padding: 8px 12px; width: auto; font-size: 12px; border-radius: 6px; }
         .today-btn { background-color: var(--today-color); padding: 8px 12px; width: auto; font-size: 12px; border-radius: 6px; }
         .backlog-btn { background-color: #636e72; padding: 8px 12px; width: auto; font-size: 12px; border-radius: 6px; }
-        .restore-btn { background-color: #4a90e2; padding: 8px 12px; width: auto; font-size: 12px; border-radius: 6px; }
+        .restore-btn { background-color: #3498db; padding: 8px 12px; width: auto; font-size: 12px; border-radius: 6px; }
 
         .bulk-add-container { background: #f4f9f7; padding: 20px; border: 1px dashed #2ed573; border-radius: 8px; margin-top: 30px; }
         .bulk-add-container textarea { height: 100px; margin-bottom: 10px; resize: vertical; }
@@ -313,7 +313,7 @@
     function toggleToday(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isToday=!x.isToday; x.isBacklog=false; saveTasks(t); }
     function toggleDone(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.status=x.status==='done'?'pending':'done'; x.isToday=false; x.isBacklog=false; saveTasks(t); }
     function moveBacklog(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=true; x.isToday=false; saveTasks(t); }
-    function restoreBacklog(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=false; saveTasks(t); }
+    function restoreTask(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=false; saveTasks(t); }
 
     function renderTasks(tasks) {
         const list = document.getElementById('taskList');
@@ -323,6 +323,7 @@
             if(lc.includes('colony')) c='cat-colony'; else if(lc.includes('swaraj')) c='cat-swaraj'; else if(lc.includes('9am')) c='cat-9am'; else if(lc.includes('rs')) c='cat-rs';
             
             const div = document.createElement('div');
+            // Design logic: If it's today focus and NOT in backlog, show the Today Box
             div.className = `task-item ${c} ${t.isToday && !t.isBacklog && t.status!=='done' ? 'today-box' : ''} ${t.status==='done'?'done':''}`;
             div.innerHTML = `
                 <div class="task-info">
@@ -343,8 +344,8 @@
                         <button class="backlog-btn" onclick="moveBacklog(${t.id})">📁 Backlog</button>
                         <button class="done-btn" onclick="toggleDone(${t.id})">✔ Done</button>
                     ` : ''}
-                    ${t.isBacklog ? `
-                        <button class="restore-btn" onclick="restoreBacklog(${t.id})">🔄 Restore to List</button>
+                    ${t.isBacklog && t.status!=='done' ? `
+                        <button class="restore-btn" onclick="restoreTask(${t.id})">🔄 Restore to List</button>
                         <button class="done-btn" onclick="toggleDone(${t.id})">✔ Done</button>
                     ` : ''}
                     ${t.status==='done' ? `
