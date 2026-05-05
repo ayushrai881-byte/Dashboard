@@ -41,7 +41,6 @@
         .task-list { display: flex; flex-direction: column; gap: 15px; }
         .task-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-radius: 8px; background: #fff; border-left: 10px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* Today Specific Design - Simple Yellow Box */
         .today-box { background-color: #fffdf0 !important; border: 1px solid #f1c40f !important; border-left: 10px solid #f39c12 !important; padding: 20px !important; }
 
         /* Category Specific Visuals */
@@ -82,7 +81,6 @@
 <div class="container">
     <div class="card auth-screen" id="authContainer">
         <h2 id="authTitle">🔐 Dashboard Login</h2>
-        
         <div id="loginSection">
             <input type="text" id="loginUser" placeholder="Username">
             <input type="password" id="loginPass" placeholder="Password">
@@ -90,7 +88,6 @@
             <span class="toggle-link" onclick="switchAuth('register')">Create New Account</span>
             <span class="toggle-link" onclick="switchAuth('recovery')">Forgot Details</span>
         </div>
-
         <div id="registerSection">
             <input type="text" id="regUser" placeholder="Username">
             <input type="password" id="regPass" placeholder="Password">
@@ -99,7 +96,6 @@
             <button onclick="handleRegister()" style="background-color: #27ae60;">Register Now</button>
             <span class="toggle-link" onclick="switchAuth('login')">Back to Login</span>
         </div>
-
         <div id="recoverySection">
             <input type="text" id="recPhone" placeholder="Mobile Number">
             <input type="text" id="recPin" placeholder="PIN">
@@ -108,7 +104,6 @@
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
     <div class="card" id="dashboardScreen">
         <div class="header-row">
             <h1 id="userGreeting">🚀 Dashboard</h1>
@@ -169,15 +164,16 @@
 <script>
     let currentUser = null;
     const ayushDefaults = [
-        { name: "Swaraj/Maschio urgent tasks", category: "Swaraj", time: "1 Hour", priority: "High", status: "pending", isToday: true, isBacklog: false },
-        { name: "Check RS Distribution stock", category: "RS Distribution", time: "2 Hours", priority: "High", status: "pending", isToday: false, isBacklog: false }
+        { id: 1, name: "Swaraj/Maschio urgent tasks", category: "Swaraj", time: "1 Hour", priority: "High", status: "pending", isToday: true, isBacklog: false },
+        { id: 2, name: "Check RS Distribution stock", category: "RS Distribution", time: "2 Hours", priority: "High", status: "pending", isToday: false, isBacklog: false }
     ];
 
     function switchAuth(type) {
         document.getElementById('loginSection').style.display = type === 'login' ? 'block' : 'none';
         document.getElementById('registerSection').style.display = type === 'register' ? 'block' : 'none';
         document.getElementById('recoverySection').style.display = type === 'recovery' ? 'block' : 'none';
-        document.getElementById('authTitle').innerText = (type === 'login') ? '🔐 Dashboard Login' : (type === 'register' ? '👤 Create Account' : '🔑 Recovery');
+        const titles = { login: '🔐 Dashboard Login', register: '👤 Create Account', recovery: '🔑 Recovery' };
+        document.getElementById('authTitle').innerText = titles[type];
     }
 
     function handleRegister() {
@@ -196,12 +192,10 @@
         const u = document.getElementById('loginUser').value.trim();
         const p = document.getElementById('loginPass').value;
         let db = JSON.parse(localStorage.getItem('users_db')) || {};
-        
         if(u === 'ayushrai' && p === 'Ayush123') {
             db[u] = { password: p, phone: '8725823044', pin: '0918' };
             localStorage.setItem('users_db', JSON.stringify(db));
         }
-
         if(db[u] && db[u].password === p) {
             currentUser = u;
             document.getElementById('authContainer').style.display='none';
@@ -214,16 +208,9 @@
     function handleRecovery() {
         const ph = document.getElementById('recPhone').value.trim();
         const pin = document.getElementById('recPin').value.trim();
-        if(ph === '8725823044' && pin === '0918') {
-             alert(`Recovery Successful!\nUser: ayushrai\nPass: Ayush123`);
-             switchAuth('login'); return;
-        }
+        if(ph === '8725823044' && pin === '0918') { alert(`Recovery Successful!\nUser: ayushrai\nPass: Ayush123`); switchAuth('login'); return; }
         let db = JSON.parse(localStorage.getItem('users_db')) || {};
-        for(let u in db) {
-            if(db[u].phone === ph && db[u].pin === pin) {
-                alert(`User: ${u}\nPass: ${db[u].password}`); return;
-            }
-        }
+        for(let u in db) { if(db[u].phone === ph && db[u].pin === pin) { alert(`User: ${u}\nPass: ${db[u].password}`); return; } }
         alert("Incorrect Phone or PIN.");
     }
 
@@ -236,9 +223,8 @@
         cats.forEach(c => { tCat.appendChild(new Option(c, c)); fCat.appendChild(new Option(c, c)); });
         tCat.appendChild(new Option("+ New Category", "ADD_NEW"));
         document.getElementById('taskSlot').innerHTML = getSlotOptions(99);
-        
         let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)) || [];
-        if(currentUser === 'ayushrai' && t.length < 2) { t = ayushDefaults; saveTasks(t); }
+        if(currentUser === 'ayushrai' && t.length < 1) { t = ayushDefaults; saveTasks(t); }
         applyFilters();
     }
 
@@ -282,10 +268,8 @@
             return mS && mC && mP && mSt;
         });
 
-        let p = tasks.filter(x => x.status === 'pending' && !x.isBacklog);
-        let tod = p.filter(x => x.isToday);
-        document.getElementById('pendingCount').innerText = p.length;
-        document.getElementById('todayCount').innerText = tod.length;
+        document.getElementById('pendingCount').innerText = tasks.filter(x => x.status === 'pending' && !x.isBacklog).length;
+        document.getElementById('todayCount').innerText = tasks.filter(x => x.isToday && !x.isBacklog && x.status === 'pending').length;
         renderTasks(filtered);
     }
 
@@ -309,11 +293,40 @@
         saveTasks(all); document.getElementById('bulkTasks').value = '';
     }
 
+    // --- BUTTON ACTIONS (FIXED) ---
     function updateSlot(id, s) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.slotId=parseInt(s.value); saveTasks(t); }
-    function toggleToday(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isToday=!x.isToday; x.isBacklog=false; saveTasks(t); }
-    function toggleDone(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.status=x.status==='done'?'pending':'done'; x.isToday=false; x.isBacklog=false; saveTasks(t); }
-    function moveBacklog(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=true; x.isToday=false; saveTasks(t); }
-    function restoreTask(id) { let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); let x = t.find(i=>i.id===id); x.isBacklog=false; saveTasks(t); }
+    
+    function toggleToday(id) { 
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); 
+        let x = t.find(i=>i.id===id); 
+        x.isToday = !x.isToday; 
+        x.isBacklog = false; 
+        saveTasks(t); 
+    }
+
+    function toggleDone(id) { 
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); 
+        let x = t.find(i=>i.id===id); 
+        x.status = x.status === 'done' ? 'pending' : 'done'; 
+        x.isToday = false; 
+        x.isBacklog = false; 
+        saveTasks(t); 
+    }
+
+    function moveBacklog(id) { 
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); 
+        let x = t.find(i=>i.id===id); 
+        x.isBacklog = true; 
+        x.isToday = false; 
+        saveTasks(t); 
+    }
+
+    function restoreTask(id) { 
+        let t = JSON.parse(localStorage.getItem(`tasks_${currentUser}`)); 
+        let x = t.find(i=>i.id===id); 
+        x.isBacklog = false; 
+        saveTasks(t); 
+    }
 
     function renderTasks(tasks) {
         const list = document.getElementById('taskList');
@@ -323,7 +336,6 @@
             if(lc.includes('colony')) c='cat-colony'; else if(lc.includes('swaraj')) c='cat-swaraj'; else if(lc.includes('9am')) c='cat-9am'; else if(lc.includes('rs')) c='cat-rs';
             
             const div = document.createElement('div');
-            // Design logic: If it's today focus and NOT in backlog, show the Today Box
             div.className = `task-item ${c} ${t.isToday && !t.isBacklog && t.status!=='done' ? 'today-box' : ''} ${t.status==='done'?'done':''}`;
             div.innerHTML = `
                 <div class="task-info">
@@ -345,11 +357,11 @@
                         <button class="done-btn" onclick="toggleDone(${t.id})">✔ Done</button>
                     ` : ''}
                     ${t.isBacklog && t.status!=='done' ? `
-                        <button class="restore-btn" onclick="restoreTask(${t.id})">🔄 Restore to List</button>
+                        <button class="restore-btn" onclick="restoreTask(${t.id})">🔄 Restore</button>
                         <button class="done-btn" onclick="toggleDone(${t.id})">✔ Done</button>
                     ` : ''}
                     ${t.status==='done' ? `
-                        <button class="today-btn" onclick="toggleDone(${t.id})">Undo</button>
+                        <button class="today-btn" style="background:#3498db;" onclick="toggleDone(${t.id})">Undo</button>
                     ` : ''}
                 </div>`;
             list.appendChild(div);
